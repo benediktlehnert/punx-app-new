@@ -33,7 +33,7 @@ const samplePhrases: PhraseCollection = {
   ],
   comma: [
     { text: "After the movie we went home", answer: "comma", position: 2 }, // After index 2 (after "movie")
-    { text: "Yes I would love to", answer: "comma", position: 1 }, // After index 1 (after "Yes")
+    { text: "Yes I would love to", answer: "comma", position: 0 }, // After index 1 (after "Yes")
   ],
 };
 
@@ -85,13 +85,27 @@ const GameScreen = () => {
   const [gameOverOpen, setGameOverOpen] = React.useState(false);
   const [hasStarted, setHasStarted] = React.useState(false);
 
-  const loadNewPhrase = React.useCallback(() => {
-    if (punctuationType && punctuationType !== 'shuffle' && samplePhrases[punctuationType]) {
+  const getRandomPhrase = React.useCallback(() => {
+    if (punctuationType === 'shuffle') {
+      // For shuffle mode, get all phrases and pick one randomly
+      const allPhrases = Object.values(samplePhrases).flat();
+      return allPhrases[Math.floor(Math.random() * allPhrases.length)];
+    } else if (punctuationType && samplePhrases[punctuationType]) {
+      // For specific punctuation type
       const phrases = samplePhrases[punctuationType];
-      setCurrentPhrase(phrases[Math.floor(Math.random() * phrases.length)]);
-      setShuffledTypes(shuffleArray(punctuationTypes));
+      return phrases[Math.floor(Math.random() * phrases.length)];
     }
+    return null;
   }, [punctuationType]);
+
+  const loadNewPhrase = React.useCallback(() => {
+    const newPhrase = getRandomPhrase();
+    setCurrentPhrase(newPhrase);
+    setShuffledTypes(shuffleArray(punctuationTypes));
+    setIsCorrect(null);
+    setSelectedMark(null);
+    setFeedback(null);
+  }, [getRandomPhrase]);
 
   React.useEffect(() => {
     loadNewPhrase();
@@ -160,10 +174,15 @@ const GameScreen = () => {
   };
 
   const handleCharacterSelect = (type: string) => {
+    console.log('Selected type:', type); // Debug log
+    console.log('Current phrase answer:', currentPhrase?.answer); // Debug log
+    
     startTimer();
     if (!currentPhrase) return;
     
     const correct = type === currentPhrase.answer;
+    console.log('Is correct?', correct); // Debug log
+    
     setIsCorrect(correct);
     setSelectedMark(type);
     setFeedback(getFeedbackMessage(type, correct));
@@ -188,20 +207,25 @@ const GameScreen = () => {
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    const type = e.dataTransfer.getData('text/plain');
+    startTimer();
     
-    if (!currentPhrase) return;
+    // Get the data with the specific format we set
+    const droppedType = e.dataTransfer.getData('application/punctuation');
+    console.log('Dropped type:', droppedType);
+    console.log('Expected answer:', currentPhrase?.answer);
     
-    // Check if the drop position matches the correct position
-    handleCharacterSelect(type);
+    if (droppedType) {
+      handleCharacterSelect(droppedType);
+    }
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.currentTarget.style.backgroundColor = '#f0f0f0';
+    e.preventDefault(); // This is crucial for enabling drop
+    e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
   };
 
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
     e.currentTarget.style.backgroundColor = 'transparent';
   };
 
@@ -226,6 +250,7 @@ const GameScreen = () => {
               (index === words.length - 1 && currentPhrase.position === 'end')) && (
               <Box
                 component="div"
+                data-position={currentPhrase.position === 'end' ? 'end' : index}
                 sx={{
                   width: selectedMark ? 60 : 20,
                   height: 40,
@@ -235,7 +260,11 @@ const GameScreen = () => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  transition: 'all 0.3s ease'
+                  transition: 'all 0.3s ease',
+                  backgroundColor: 'transparent',
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.05)'
+                  }
                 }}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}

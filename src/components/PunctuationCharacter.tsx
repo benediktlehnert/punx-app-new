@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Box, Paper } from '@mui/material';
+import { Paper } from '@mui/material';
 
 interface PunctuationCharacterProps {
   type: string;
@@ -16,18 +16,8 @@ const PunctuationCharacter = ({
   isDraggable,
   onDragStart 
 }: PunctuationCharacterProps) => {
-  const getCharacter = () => {
-    switch (type) {
-      case 'period': return '.';
-      case 'exclamation': return '!';
-      case 'question': return '?';
-      case 'comma': return ',';
-      default: return '';
-    }
-  };
-
-  const handleDragStart = (e: React.DragEvent) => {
-    e.dataTransfer.setData('text/plain', type);
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
+    e.dataTransfer.setData('application/punctuation', type);
     if (onDragStart) onDragStart(e);
   };
 
@@ -41,21 +31,34 @@ const PunctuationCharacter = ({
         alignItems: 'center',
         justifyContent: 'center',
         fontSize: '2rem',
-        cursor: 'pointer',
+        cursor: isDraggable ? 'grab' : 'default',
         backgroundColor: isCorrect === true ? '#4caf50' : 
                        isCorrect === false ? '#f44336' : '#fff',
         transition: 'all 0.3s ease',
         '&:hover': {
-          transform: 'scale(1.1)',
+          transform: isDraggable ? 'scale(1.1)' : 'none',
+        },
+        '&:active': {
+          cursor: isDraggable ? 'grabbing' : 'default',
         }
       }}
       onClick={onClick}
       draggable={isDraggable}
       onDragStart={handleDragStart}
     >
-      {getCharacter()}
+      {getCharacter(type)}
     </Paper>
   );
+};
+
+const getCharacter = (type: string) => {
+  switch (type) {
+    case 'period': return '.';
+    case 'exclamation': return '!';
+    case 'question': return '?';
+    case 'comma': return ',';
+    default: return '';
+  }
 };
 
 export default PunctuationCharacter;
