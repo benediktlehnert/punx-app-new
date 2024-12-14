@@ -5,10 +5,12 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
+    "@mui/icons-material": "^6.2.0",
     "@mui/material": "^6.2.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",
     "@types/jest": "^29.5.14",
+    "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.2",
     "cra-template-typescript": "1.2.0",
     "react": "^19.0.0",
@@ -21,7 +23,9 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [
@@ -40,5 +44,10 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "gh-pages": "^6.2.0"
+  },
+  "homepage": "https://benediktlehnert.github.io/punx-app-new"
 }

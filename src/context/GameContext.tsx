@@ -13,6 +13,13 @@ interface GameContextType {
   setLanguage: (lang: string) => void;
   difficulty: Difficulty;
   setDifficulty: (diff: Difficulty) => void;
+  settings: {
+    sound: boolean;
+    difficulty: number;
+    timer: boolean;
+    timeLimit: number;
+  };
+  setSettings: (settings: any) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -22,6 +29,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [punctuationType, setPunctuationType] = useState<PunctuationType>('period');
   const [language, setLanguage] = useState('en');
   const [difficulty, setDifficulty] = useState<Difficulty>('smart');
+  const [settings, setSettings] = useState({
+    sound: true,
+    difficulty: 1,
+    timer: false,
+    timeLimit: 60
+  });
 
   return (
     <GameContext.Provider value={{
@@ -33,6 +46,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLanguage,
       difficulty,
       setDifficulty,
+      settings,
+      setSettings
     }}>
       {children}
     </GameContext.Provider>

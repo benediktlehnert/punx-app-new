@@ -1,6 +1,7 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import StartScreen from './screens/StartScreen';
+import CharacterSelectScreen from './screens/CharacterSelectScreen';
 import GameScreen from './screens/GameScreen';
 import { ThemeProvider } from '@mui/material';
 import theme from './theme';
@@ -13,6 +14,7 @@ function App() {
         <Router>
           <Routes>
             <Route path="/" element={<StartScreen />} />
+            <Route path="/select" element={<CharacterSelectScreen />} />
             <Route path="/game" element={<GameScreen />} />
           </Routes>
         </Router>
