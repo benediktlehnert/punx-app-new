@@ -38,7 +38,9 @@ const samplePhrases: PhraseCollection = {
   ],
 };
 
-const punctuationTypes = ['period', 'exclamation', 'question', 'comma'];
+type PunctuationType = 'period' | 'exclamation' | 'question' | 'comma';
+
+const punctuationTypes: PunctuationType[] = ['period', 'exclamation', 'question', 'comma'];
 
 interface FeedbackMessage {
   text: string;
@@ -78,9 +80,9 @@ const GameScreen = () => {
   const { punctuationType, settings } = useGame();
   const [currentPhrase, setCurrentPhrase] = React.useState<Phrase | null>(null);
   const [isCorrect, setIsCorrect] = React.useState<boolean | null>(null);
-  const [shuffledTypes, setShuffledTypes] = React.useState(punctuationTypes);
+  const [shuffledTypes, setShuffledTypes] = React.useState<PunctuationType[]>(['period', 'exclamation', 'question', 'comma']);
   const [score, setScore] = React.useState({ correct: 0, incorrect: 0 });
-  const [selectedMark, setSelectedMark] = React.useState<string | null>(null);
+  const [selectedMark, setSelectedMark] = React.useState<PunctuationType | null>(null);
   const [feedback, setFeedback] = React.useState<FeedbackMessage | null>(null);
   const [timeLeft, setTimeLeft] = React.useState<number | null>(null);
   const [gameOverOpen, setGameOverOpen] = React.useState(false);
@@ -174,48 +176,49 @@ const GameScreen = () => {
     }
   };
 
-  const handleCharacterSelect = (type: string) => {
-    console.log('Selected type:', type); // Debug log
-    console.log('Current phrase answer:', currentPhrase?.answer); // Debug log
-    
-    startTimer();
-    if (!currentPhrase) return;
-    
-    const correct = type === currentPhrase.answer;
-    console.log('Is correct?', correct); // Debug log
-    
-    setIsCorrect(correct);
+  const vibrate = (pattern: number | number[]) => {
+    if ('vibrate' in navigator) {
+      navigator.vibrate(pattern);
+    }
+  };
+
+  const handleCharacterSelect = (type: PunctuationType) => {
     setSelectedMark(type);
-    setFeedback(getFeedbackMessage(type, correct));
-    
-    if (correct) {
-      setScore(prev => ({ ...prev, correct: prev.correct + 1 }));
+    vibrate(50);
+
+    if (currentPhrase) {
+      const correct = type === currentPhrase.answer;
+      setIsCorrect(correct);
+      
+      // Update score
+      setScore(prev => ({
+        correct: correct ? prev.correct + 1 : prev.correct,
+        incorrect: correct ? prev.incorrect : prev.incorrect + 1
+      }));
+      
+      if (correct) {
+        vibrate([100, 50, 100]);
+      } else {
+        vibrate([200]);
+      }
+
+      // Load new phrase after a delay
       setTimeout(() => {
-        loadNewPhrase();
-        setSelectedMark(null);
-        setFeedback(null);
+        const newPhrase = getRandomPhrase();
+        setCurrentPhrase(newPhrase);
+        setShuffledTypes(shuffleArray([...punctuationTypes]));
         setIsCorrect(null);
-      }, 2000);
-    } else {
-      setScore(prev => ({ ...prev, incorrect: prev.incorrect + 1 }));
-      setTimeout(() => {
         setSelectedMark(null);
-        setFeedback(null);
-        setIsCorrect(null);
-      }, 2000);
+      }, 1000);
     }
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    startTimer();
-    
-    // Get the data with the specific format we set
-    const droppedType = e.dataTransfer.getData('application/punctuation');
-    console.log('Dropped type:', droppedType);
-    console.log('Expected answer:', currentPhrase?.answer);
+    const droppedType = e.dataTransfer.getData('application/punctuation') as PunctuationType;
     
     if (droppedType) {
+      vibrate(50); // Short vibration on drop
       handleCharacterSelect(droppedType);
     }
   };
@@ -250,8 +253,8 @@ const GameScreen = () => {
       }}>
         <Typography sx={{
           fontFamily: '"Bookman Old Style", serif',
-          fontSize: '120px',
-          lineHeight: 1,
+          fontSize: '140px',
+          lineHeight: 1.1,
           textAlign: 'left',
           maxWidth: '80%',
           margin: '0 auto'
@@ -265,12 +268,14 @@ const GameScreen = () => {
                   component="span"
                   sx={{
                     display: 'inline-flex',
-                    width: selectedMark ? '60px' : '40px',
-                    height: '60px',
-                    border: '2px dashed #ccc',
-                    borderRadius: '4px',
-                    mx: 1,
-                    verticalAlign: 'middle'
+                    width: '140px',
+                    height: '140px',
+                    border: '6px dashed #ccc',
+                    borderRadius: '20px',
+                    mx: 2,
+                    verticalAlign: 'top',
+                    justifyContent: 'center',
+                    alignItems: 'center'
                   }}
                   onDrop={handleDrop}
                   onDragOver={handleDragOver}
@@ -361,60 +366,54 @@ const GameScreen = () => {
     </Box>
   );
 
-  const CharacterRow = () => (
-    <Box sx={{ 
-      display: 'flex', 
-      justifyContent: 'center', 
-      gap: 3,
-      position: 'fixed',
-      bottom: 40,
-      left: 0,
-      right: 0
-    }}>
-      {shuffledTypes.map((type) => (
-        <PunctuationCharacter
-          key={type}
-          type={type}
-          onClick={() => handleCharacterSelect(type)}
-          isCorrect={isCorrect !== null ? type === currentPhrase?.answer : undefined}
-          isDraggable={true}
-          onDragStart={handleDragStart}
-        />
-      ))}
-    </Box>
-  );
-
   return (
-    <Box sx={{ p: 4, textAlign: 'center' }}>
+    <Box sx={{ 
+      height: '100vh',
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
       <TopBar />
+      
+      <Box sx={{ 
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        padding: '24px'
+      }}>
+        <Box sx={{ 
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          {renderPhrase()}
+        </Box>
+
+        <Box sx={{ 
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '32px',
+          padding: '24px',
+          minHeight: '160px'
+        }}>
+          {shuffledTypes.map((type) => (
+            <PunctuationCharacter
+              key={type}
+              type={type}
+              onClick={() => handleCharacterSelect(type)}
+              isCorrect={undefined}
+              isDraggable={true}
+              onDragStart={() => setSelectedMark(null)}
+            />
+          ))}
+        </Box>
+      </Box>
 
       {settings.timer && <TimerDisplay />}
-
-      {currentPhrase && (
-        <>
-          <Box component="div" sx={{ mb: 4 }}>
-            {renderPhrase()}
-          </Box>
-
-          {feedback && (
-            <Typography
-              variant="subtitle1"
-              sx={{
-                mb: 4,
-                color: feedback.type === 'success' ? 'success.main' : 'error.main',
-                animation: 'fadeIn 0.5s ease-in'
-              }}
-            >
-              {feedback.text}
-            </Typography>
-          )}
-
-          <CharacterRow />
-        </>
-      )}
-
-      <GameOverDialog
-        open={gameOverOpen}
+      <GameOverDialog 
+        open={gameOverOpen} 
         onClose={handleGameOverClose}
         score={score}
       />
