@@ -115,23 +115,39 @@ const PunctuationCharacter = ({
         alignSelf: 'center',
         margin: 'auto',
         animation: !isDraggable ? `${stickerPlacement} 0.4s ease-out` : 'none',
+        filter: isDraggable ? 'drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.2))' : 'none',
+        touchAction: 'none',
+        WebkitTouchCallout: 'none',
+        WebkitUserSelect: 'none',
         '&:hover': {
           transform: isDraggable ? 'scale(1.1)' : 'none',
         },
         '&:active': {
           cursor: isDraggable ? 'grabbing' : 'pointer',
+          filter: isDraggable ? 'drop-shadow(0px 6px 12px rgba(0, 0, 0, 0.3))' : 'none',
         },
         '& img': {
           width: '100%',
           height: '100%',
           objectFit: 'contain',
           userSelect: 'none',
-          WebkitUserDrag: 'none'
+          WebkitUserDrag: 'none',
+          pointerEvents: 'none'
         }
       }}
       onClick={onClick}
       draggable={isDraggable}
       onDragStart={handleDragStart}
+      onTouchStart={(e) => {
+        if (isDraggable) {
+          e.currentTarget.style.transform = 'scale(1.1)';
+        }
+      }}
+      onTouchEnd={(e) => {
+        if (isDraggable) {
+          e.currentTarget.style.transform = 'scale(1)';
+        }
+      }}
     >
       <img 
         src={getCharacterImage()} 

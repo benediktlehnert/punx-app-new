@@ -177,8 +177,12 @@ const GameScreen = () => {
   };
 
   const vibrate = (pattern: number | number[]) => {
-    if ('vibrate' in navigator) {
-      navigator.vibrate(pattern);
+    try {
+      if ('vibrate' in navigator && typeof navigator.vibrate === 'function') {
+        navigator.vibrate(pattern);
+      }
+    } catch (error) {
+      console.log('Vibration not supported');
     }
   };
 
@@ -213,12 +217,12 @@ const GameScreen = () => {
     }
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = (e: React.DragEvent<HTMLElement>) => {
     e.preventDefault();
     const droppedType = e.dataTransfer.getData('application/punctuation') as PunctuationType;
     
     if (droppedType) {
-      vibrate(50); // Short vibration on drop
+      vibrate(50);
       handleCharacterSelect(droppedType);
     }
   };
@@ -249,7 +253,9 @@ const GameScreen = () => {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        minHeight: '50vh'
+        minHeight: '50vh',
+        position: 'relative',
+        isolation: 'isolate'
       }}>
         <Typography sx={{
           fontFamily: '"Bookman Old Style", serif',
@@ -257,7 +263,9 @@ const GameScreen = () => {
           lineHeight: 1.1,
           textAlign: 'left',
           maxWidth: '80%',
-          margin: '0 auto'
+          margin: '0 auto',
+          position: 'relative',
+          zIndex: 1
         }}>
           {words.map((word, index) => (
             <React.Fragment key={index}>
@@ -270,16 +278,31 @@ const GameScreen = () => {
                     display: 'inline-flex',
                     width: '140px',
                     height: '140px',
-                    border: '6px dashed #ccc',
-                    borderRadius: '20px',
+                    border: '6px dashed #bbb',
+                    borderRadius: '32px',
                     mx: 2,
                     verticalAlign: 'top',
                     justifyContent: 'center',
-                    alignItems: 'center'
+                    alignItems: 'center',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    transform: 'scale(1)',
+                    transformOrigin: 'center center',
+                    '&.dragover': {
+                      transform: 'scale(1.1)',
+                    }
                   }}
-                  onDrop={handleDrop}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => {
+                    e.currentTarget.classList.remove('dragover');
+                    handleDrop(e);
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.add('dragover');
+                  }}
+                  onDragLeave={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.remove('dragover');
+                  }}
                 >
                   {selectedMark && (
                     <PunctuationCharacter
