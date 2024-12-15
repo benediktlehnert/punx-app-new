@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/punx-app-new/static/css/main.00bef5e5.css",
-    "main.js": "/punx-app-new/static/js/main.517f2809.js",
+    "main.js": "/punx-app-new/static/js/main.8de607c5.js",
     "static/js/488.6c847ef2.chunk.js": "/punx-app-new/static/js/488.6c847ef2.chunk.js",
     "static/media/ex-default.png": "/punx-app-new/static/media/ex-default.718275f68730bd5c3795.png",
     "static/media/ex-sad.png": "/punx-app-new/static/media/ex-sad.3964e933eb79629e4b46.png",
@@ -21,11 +21,11 @@
     "static/media/punx-grotesk-regular.otf": "/punx-app-new/static/media/punx-grotesk-regular.0e28197bdace9691b634.otf",
     "index.html": "/punx-app-new/index.html",
     "main.00bef5e5.css.map": "/punx-app-new/static/css/main.00bef5e5.css.map",
-    "main.517f2809.js.map": "/punx-app-new/static/js/main.517f2809.js.map",
+    "main.8de607c5.js.map": "/punx-app-new/static/js/main.8de607c5.js.map",
     "488.6c847ef2.chunk.js.map": "/punx-app-new/static/js/488.6c847ef2.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.00bef5e5.css",
-    "static/js/main.517f2809.js"
+    "static/js/main.8de607c5.js"
   ]
 }
