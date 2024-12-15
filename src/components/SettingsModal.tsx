@@ -14,6 +14,7 @@ import {
   Select,
   MenuItem
 } from '@mui/material';
+import { Button as MuiButton } from './Button';
 
 interface SettingsModalProps {
   open: boolean;
@@ -104,8 +105,8 @@ const SettingsModal = ({ open, onClose, settings, onSettingsChange }: SettingsMo
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleCancel}>Cancel</Button>
-        <Button onClick={handleSave} variant="contained">Save</Button>
+        <MuiButton onClick={handleCancel}>Cancel</MuiButton>
+        <MuiButton onClick={handleSave}>Save</MuiButton>
       </DialogActions>
     </Dialog>
   );

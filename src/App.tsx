@@ -3,13 +3,16 @@ import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import StartScreen from './screens/StartScreen';
 import CharacterSelectScreen from './screens/CharacterSelectScreen';
 import GameScreen from './screens/GameScreen';
-import { ThemeProvider } from '@mui/material';
-import theme from './theme';
+import { ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import { theme } from './theme';
 import { GameProvider } from './context/GameContext';
+import './fonts.css';
 
 function App() {
   return (
     <ThemeProvider theme={theme}>
+      <CssBaseline />
       <GameProvider>
         <Router>
           <Routes>

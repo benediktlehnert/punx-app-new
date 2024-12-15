@@ -1,6 +1,7 @@
 import * as React from 'react';
-import { Box, Button } from '@mui/material';
+import { Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { Button } from '../components/Button';
 
 const StartScreen = () => {
   const navigate = useNavigate();
@@ -13,8 +14,11 @@ const StartScreen = () => {
       justifyContent: 'center', 
       height: '100vh' 
     }}>
-      <Button variant="contained" onClick={() => navigate('/select')}>
-        Let's Go!
+      <Button onClick={() => navigate('/select')}>
+        Start Game
+      </Button>
+      <Button onClick={() => navigate('/settings')}>
+        Settings
       </Button>
     </Box>
   );

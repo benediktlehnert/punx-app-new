@@ -1,9 +1,11 @@
 import * as React from 'react';
-import { Box, Button, Grid, Typography } from '@mui/material';
+import { Box, Grid, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SettingsModal from '../components/SettingsModal';
+import { Button } from '../components/Button';
+import { IconButton } from '@mui/material';
 
 const characters = [
   { id: 'period', name: 'Peri', type: 'period' },
@@ -38,12 +40,20 @@ const CharacterSelectScreen = () => {
         Back
       </Button>
 
-      <Button
+      <IconButton
         onClick={handleSettingsOpen}
-        sx={{ position: 'absolute', top: 16, right: 16 }}
+        sx={{ 
+          position: 'absolute', 
+          top: 16, 
+          right: 16,
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            transform: 'scale(1.1)',
+          }
+        }}
       >
         <SettingsIcon />
-      </Button>
+      </IconButton>
 
       <Typography variant="h4" sx={{ mb: 4 }}>
         Choose Your Character

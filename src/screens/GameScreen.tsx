@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
 import PunctuationCharacter from '../components/PunctuationCharacter';
 import { shuffleArray } from '../utils/shuffle';
+import { Button as CustomButton } from '../components/Button';
 
 type Phrase = {
   text: string;
@@ -25,7 +26,7 @@ const samplePhrases: PhraseCollection = {
   ],
   exclamation: [
     { text: "What a wonderful day", answer: "exclamation", position: 'end' },
-    { text: "I can't believe it", answer: "exclamation", position: 'end' },
+    { text: "I can’t believe it", answer: "exclamation", position: 'end' },
   ],
   question: [
     { text: "How are you today", answer: "question", position: 'end' },
@@ -240,48 +241,55 @@ const GameScreen = () => {
     const words = currentPhrase.text.split(' ');
     
     return (
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 1 }}>
-        {words.map((word, index) => (
-          <React.Fragment key={index}>
-            <Typography variant="h4" component="span">
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '50vh'
+      }}>
+        <Typography sx={{
+          fontFamily: '"Bookman Old Style", serif',
+          fontSize: '120px',
+          lineHeight: 1,
+          textAlign: 'left',
+          maxWidth: '80%',
+          margin: '0 auto'
+        }}>
+          {words.map((word, index) => (
+            <React.Fragment key={index}>
               {word}
-            </Typography>
-            {(currentPhrase.position === index || 
-              (index === words.length - 1 && currentPhrase.position === 'end')) && (
-              <Box
-                component="div"
-                data-position={currentPhrase.position === 'end' ? 'end' : index}
-                sx={{
-                  width: selectedMark ? 60 : 20,
-                  height: 40,
-                  border: selectedMark ? 'none' : '2px dashed #ccc',
-                  borderRadius: 1,
-                  mx: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.3s ease',
-                  backgroundColor: 'transparent',
-                  '&:hover': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.05)'
-                  }
-                }}
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-              >
-                {selectedMark && (
-                  <PunctuationCharacter
-                    type={selectedMark}
-                    onClick={() => {}}
-                    isCorrect={isCorrect}
-                    isDraggable={false}
-                  />
-                )}
-              </Box>
-            )}
-          </React.Fragment>
-        ))}
+              {(currentPhrase.position === index || 
+                (index === words.length - 1 && currentPhrase.position === 'end')) && (
+                <Box
+                  component="span"
+                  sx={{
+                    display: 'inline-flex',
+                    width: selectedMark ? '60px' : '40px',
+                    height: '60px',
+                    border: '2px dashed #ccc',
+                    borderRadius: '4px',
+                    mx: 1,
+                    verticalAlign: 'middle'
+                  }}
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                >
+                  {selectedMark && (
+                    <PunctuationCharacter
+                      type={selectedMark}
+                      onClick={() => {}}
+                      isCorrect={isCorrect}
+                      isDraggable={false}
+                    />
+                  )}
+                </Box>
+              )}
+              {' '}
+            </React.Fragment>
+          ))}
+        </Typography>
       </Box>
     );
   };
@@ -291,55 +299,96 @@ const GameScreen = () => {
     navigate('/select');
   };
 
-  const formatTime = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  const formatTime = (seconds: number | null): string => {
+    if (seconds === null) return "0:00";
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
+
+  const TimerDisplay = () => (
+    <Box sx={{ 
+      position: 'absolute',
+      top: 16,
+      right: 16,
+      backgroundColor: (!hasStarted || timeLeft === null) ? 'primary.main' :
+                      timeLeft < 10 ? 'error.main' : 'primary.main',
+      color: 'white',
+      borderRadius: '50%',
+      width: 80,
+      height: 80,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      transition: 'background-color 0.3s ease',
+      boxShadow: 2
+    }}>
+      <Typography 
+        variant="h6" 
+        sx={{ 
+          fontFamily: 'monospace',
+          fontWeight: 'bold'
+        }}
+      >
+        {formatTime(timeLeft)}
+      </Typography>
+    </Box>
+  );
+
+  React.useEffect(() => {
+    if (settings.timer) {
+      setTimeLeft(settings.timeLimit);
+    }
+  }, [settings.timer, settings.timeLimit]);
+
+  const TopBar = () => (
+    <Box sx={{ 
+      display: 'flex', 
+      justifyContent: 'space-between', 
+      alignItems: 'center',
+      padding: '16px',
+      width: '100%'
+    }}>
+      <CustomButton onClick={() => navigate('/select')}>
+        DONE
+      </CustomButton>
+      <Typography sx={{ 
+        fontFamily: '"Rethink Sans", Arial, sans-serif',
+        fontWeight: 800
+      }}>
+        CORRECT: {score.correct} INCORRECT: {score.incorrect}
+      </Typography>
+    </Box>
+  );
+
+  const CharacterRow = () => (
+    <Box sx={{ 
+      display: 'flex', 
+      justifyContent: 'center', 
+      gap: 3,
+      position: 'fixed',
+      bottom: 40,
+      left: 0,
+      right: 0
+    }}>
+      {shuffledTypes.map((type) => (
+        <PunctuationCharacter
+          key={type}
+          type={type}
+          onClick={() => handleCharacterSelect(type)}
+          isCorrect={isCorrect !== null ? type === currentPhrase?.answer : undefined}
+          isDraggable={true}
+          onDragStart={handleDragStart}
+        />
+      ))}
+    </Box>
+  );
 
   return (
     <Box sx={{ p: 4, textAlign: 'center' }}>
-      <Box sx={{ 
-        position: 'absolute', 
-        top: 16, 
-        left: 16, 
-        display: 'flex', 
-        flexDirection: 'column', 
-        alignItems: 'flex-start', 
-        gap: 1 
-      }}>
-        <Button onClick={() => navigate('/select')}>
-          Done
-        </Button>
-        <Typography variant="body2" sx={{ color: 'success.main' }}>
-          Correct: {score.correct}
-        </Typography>
-        <Typography variant="body2" sx={{ color: 'error.main' }}>
-          Incorrect: {score.incorrect}
-        </Typography>
-      </Box>
+      <TopBar />
 
-      {settings.timer && timeLeft !== null && (
-        <Box sx={{ 
-          position: 'absolute',
-          top: 16,
-          right: 16,
-          backgroundColor: timeLeft < 10 ? 'error.main' : 'primary.main',
-          color: 'white',
-          borderRadius: '50%',
-          width: 60,
-          height: 60,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          transition: 'background-color 0.3s ease',
-          boxShadow: 2
-        }}>
-          <Typography variant="h5">
-            {timeLeft}
-          </Typography>
-        </Box>
-      )}
+      {settings.timer && <TimerDisplay />}
 
       {currentPhrase && (
         <>
@@ -349,7 +398,7 @@ const GameScreen = () => {
 
           {feedback && (
             <Typography
-              variant="h6"
+              variant="subtitle1"
               sx={{
                 mb: 4,
                 color: feedback.type === 'success' ? 'success.main' : 'error.main',
@@ -360,19 +409,7 @@ const GameScreen = () => {
             </Typography>
           )}
 
-          <Grid container spacing={2} justifyContent="center">
-            {shuffledTypes.map((type) => (
-              <Grid item key={type}>
-                <PunctuationCharacter
-                  type={type}
-                  onClick={() => handleCharacterSelect(type)}
-                  isCorrect={isCorrect !== null ? type === currentPhrase.answer : undefined}
-                  isDraggable={true}
-                  onDragStart={handleDragStart}
-                />
-              </Grid>
-            ))}
-          </Grid>
+          <CharacterRow />
         </>
       )}
 

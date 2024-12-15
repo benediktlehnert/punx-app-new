@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Paper } from '@mui/material';
+import { Paper, useTheme } from '@mui/material';
 
 interface PunctuationCharacterProps {
   type: string;
@@ -16,6 +16,23 @@ const PunctuationCharacter = ({
   isDraggable,
   onDragStart 
 }: PunctuationCharacterProps) => {
+  const theme = useTheme();
+
+  const getCharacterColor = (type: string) => {
+    switch (type) {
+      case 'period':
+        return theme.palette.characters.peri;
+      case 'exclamation':
+        return theme.palette.characters.ex;
+      case 'question':
+        return theme.palette.characters.quest;
+      case 'comma':
+        return theme.palette.characters.curly;
+      default:
+        return theme.palette.common.white;
+    }
+  };
+
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
     e.dataTransfer.setData('application/punctuation', type);
     if (onDragStart) onDragStart(e);
@@ -32,11 +49,14 @@ const PunctuationCharacter = ({
         justifyContent: 'center',
         fontSize: '2rem',
         cursor: isDraggable ? 'grab' : 'default',
-        backgroundColor: isCorrect === true ? '#4caf50' : 
-                       isCorrect === false ? '#f44336' : '#fff',
+        backgroundColor: isCorrect === true ? theme.palette.success.main : 
+                       isCorrect === false ? theme.palette.error.main : 
+                       getCharacterColor(type),
+        color: theme.palette.common.white,
         transition: 'all 0.3s ease',
         '&:hover': {
           transform: isDraggable ? 'scale(1.1)' : 'none',
+          boxShadow: 6,
         },
         '&:active': {
           cursor: isDraggable ? 'grabbing' : 'default',
