@@ -87,6 +87,7 @@ const GameScreen = () => {
   const [timeLeft, setTimeLeft] = React.useState<number | null>(null);
   const [gameOverOpen, setGameOverOpen] = React.useState(false);
   const [hasStarted, setHasStarted] = React.useState(false);
+  const timerRef = React.useRef<NodeJS.Timeout | null>(null);
 
   const getRandomPhrase = React.useCallback(() => {
     if (punctuationType === 'shuffle') {
@@ -122,21 +123,39 @@ const GameScreen = () => {
   }, [hasStarted, settings.timer, settings.timeLimit]);
 
   React.useEffect(() => {
-    if (!hasStarted || !settings.timer) return;
+    if (hasStarted && settings.timer && timeLeft !== null && timeLeft > 0) {
+      timerRef.current = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev === null || prev <= 1) {
+            if (timerRef.current) {
+              clearInterval(timerRef.current);
+            }
+            setGameOverOpen(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
 
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev === null || prev <= 0) {
-          clearInterval(timer);
-          setGameOverOpen(true);
-          return 0;
+      return () => {
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
         }
-        return prev - 1;
-      });
-    }, 1000);
+      };
+    }
+  }, [hasStarted, settings.timer, timeLeft]);
 
-    return () => clearInterval(timer);
-  }, [hasStarted, settings.timer]);
+  React.useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, []);
+
+  const handleFirstInteraction = () => {
+    startTimer();
+  };
 
   const getFeedbackMessage = (type: string, isCorrect: boolean): FeedbackMessage => {
     if (isCorrect) {
@@ -187,6 +206,7 @@ const GameScreen = () => {
   };
 
   const handleCharacterSelect = (type: PunctuationType) => {
+    handleFirstInteraction();
     setSelectedMark(type);
     vibrate(50);
 
@@ -219,7 +239,10 @@ const GameScreen = () => {
 
   const handleDrop = (e: React.DragEvent<HTMLElement>) => {
     e.preventDefault();
+    e.currentTarget.classList.remove('dragover');
     const droppedType = e.dataTransfer.getData('application/punctuation') as PunctuationType;
+    
+    console.log('Dropped type:', droppedType); // Add this for debugging
     
     if (droppedType) {
       vibrate(50);
@@ -248,60 +271,53 @@ const GameScreen = () => {
     const words = currentPhrase.text.split(' ');
     
     return (
-      <Box sx={{ 
-        display: 'flex', 
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '50vh',
-        position: 'relative',
-        isolation: 'isolate'
+      <div style={{ 
+        width: '100%',
+        textAlign: 'center'
       }}>
-        <Typography sx={{
-          fontFamily: '"Bookman Old Style", serif',
-          fontSize: '140px',
-          lineHeight: 1.1,
+        <div style={{
+          fontFamily: 'Bookman Old Style Regular, serif',
+          fontSize: window.innerWidth < 600 ? '80px' : 
+                   window.innerWidth < 960 ? '100px' : 
+                   window.innerWidth < 1280 ? '120px' : '140px',
+          lineHeight: '1.1',
+          display: 'inline-block',
           textAlign: 'left',
-          maxWidth: '80%',
-          margin: '0 auto',
-          position: 'relative',
-          zIndex: 1
+          maxWidth: '90%',
+          margin: '0 auto'
         }}>
           {words.map((word, index) => (
             <React.Fragment key={index}>
               {word}
               {(currentPhrase.position === index || 
                 (index === words.length - 1 && currentPhrase.position === 'end')) && (
-                <Box
-                  component="span"
-                  sx={{
+                <span
+                  data-dropzone="true"
+                  style={{
                     display: 'inline-flex',
                     width: '140px',
                     height: '140px',
-                    border: '6px dashed #bbb',
-                    borderRadius: '32px',
-                    mx: 2,
+                    border: '6px dashed #ccc',
+                    borderRadius: '20px',
+                    margin: '0 16px',
                     verticalAlign: 'top',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    transform: 'scale(1)',
-                    transformOrigin: 'center center',
-                    '&.dragover': {
-                      transform: 'scale(1.1)',
-                    }
+                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                    transform: 'scale(1)'
                   }}
                   onDrop={(e) => {
-                    e.currentTarget.classList.remove('dragover');
+                    e.preventDefault();
+                    e.currentTarget.style.transform = 'scale(1)';
                     handleDrop(e);
                   }}
                   onDragOver={(e) => {
                     e.preventDefault();
-                    e.currentTarget.classList.add('dragover');
+                    e.currentTarget.style.transform = 'scale(1.1)';
                   }}
                   onDragLeave={(e) => {
                     e.preventDefault();
-                    e.currentTarget.classList.remove('dragover');
+                    e.currentTarget.style.transform = 'scale(1)';
                   }}
                 >
                   {selectedMark && (
@@ -310,15 +326,16 @@ const GameScreen = () => {
                       onClick={() => {}}
                       isCorrect={isCorrect}
                       isDraggable={false}
+                      onSelect={() => {}}
                     />
                   )}
-                </Box>
+                </span>
               )}
               {' '}
             </React.Fragment>
           ))}
-        </Typography>
-      </Box>
+        </div>
+      </div>
     );
   };
 
@@ -393,7 +410,8 @@ const GameScreen = () => {
     <Box sx={{ 
       height: '100vh',
       display: 'flex',
-      flexDirection: 'column'
+      flexDirection: 'column',
+      position: 'relative'
     }}>
       <TopBar />
       
@@ -401,8 +419,10 @@ const GameScreen = () => {
         flex: 1,
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'space-between',
-        padding: '24px'
+        justifyContent: 'center',
+        padding: '24px',
+        paddingBottom: '120px',
+        paddingTop: '12px',
       }}>
         <Box sx={{ 
           flex: 1,
@@ -412,26 +432,33 @@ const GameScreen = () => {
         }}>
           {renderPhrase()}
         </Box>
+      </Box>
 
-        <Box sx={{ 
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: '32px',
-          padding: '24px',
-          minHeight: '160px'
-        }}>
-          {shuffledTypes.map((type) => (
-            <PunctuationCharacter
-              key={type}
-              type={type}
-              onClick={() => handleCharacterSelect(type)}
-              isCorrect={undefined}
-              isDraggable={true}
-              onDragStart={() => setSelectedMark(null)}
-            />
-          ))}
-        </Box>
+      <Box sx={{ 
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: '32px',
+        padding: '24px',
+        minHeight: '120px',
+        backgroundColor: 'transparent',
+        zIndex: 2
+      }}>
+        {shuffledTypes.map((type) => (
+          <PunctuationCharacter
+            key={type}
+            type={type}
+            onClick={() => handleCharacterSelect(type)}
+            isCorrect={undefined}
+            isDraggable={true}
+            onDragStart={() => setSelectedMark(null)}
+            onSelect={handleCharacterSelect}
+          />
+        ))}
       </Box>
 
       {settings.timer && <TimerDisplay />}

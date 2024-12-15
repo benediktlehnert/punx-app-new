@@ -24,6 +24,7 @@ interface PunctuationCharacterProps {
   onClick: () => void;
   isDraggable?: boolean;
   onDragStart?: (e: React.DragEvent) => void;
+  onSelect?: (type: 'period' | 'exclamation' | 'question' | 'comma') => void;
 }
 
 const characterImages = {
@@ -71,8 +72,12 @@ const PunctuationCharacter = ({
   isCorrect, 
   onClick, 
   isDraggable,
-  onDragStart 
+  onDragStart,
+  onSelect 
 }: PunctuationCharacterProps) => {
+  const [isDragging, setIsDragging] = React.useState(false);
+  const [touchPosition, setTouchPosition] = React.useState({ x: 0, y: 0 });
+
   const getCharacterImage = () => {
     const baseName = type.toLowerCase();
     if (isCorrect === true) {
@@ -83,9 +88,12 @@ const PunctuationCharacter = ({
     return characterImages[type].default;
   };
 
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDragStart = (e: React.DragEvent<HTMLElement>) => {
+    setIsDragging(true);
     e.dataTransfer.setData('application/punctuation', type);
-    if (onDragStart) onDragStart(e);
+    if (onDragStart) {
+      onDragStart(e);
+    }
   };
 
   const getCharacterSize = () => {
@@ -101,13 +109,46 @@ const PunctuationCharacter = ({
 
   const size = getCharacterSize();
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!isDraggable) return;
+    
+    const touch = e.touches[0];
+    setTouchPosition({
+      x: touch.clientX,
+      y: touch.clientY
+    });
+    setIsDragging(true);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+
+    const touch = e.touches[0];
+    const dropZones = document.querySelectorAll('[data-dropzone="true"]');
+    
+    dropZones.forEach(zone => {
+      const rect = zone.getBoundingClientRect();
+      if (
+        touch.clientX >= rect.left &&
+        touch.clientX <= rect.right &&
+        touch.clientY >= rect.top &&
+        touch.clientY <= rect.bottom
+      ) {
+        if (onSelect) {
+          onSelect(type);
+        }
+        setIsDragging(false);
+      }
+    });
+  };
+
   return (
     <Box
       component="div"
       sx={{
         width: size,
         height: size,
-        cursor: isDraggable ? 'grab' : 'pointer',
+        cursor: isDraggable ? (isDragging ? 'grabbing' : 'grab') : 'pointer',
         transition: 'all 0.3s ease',
         display: 'flex',
         alignItems: 'center',
@@ -116,7 +157,7 @@ const PunctuationCharacter = ({
         margin: 'auto',
         animation: !isDraggable ? `${stickerPlacement} 0.4s ease-out` : 'none',
         filter: isDraggable ? 'drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.2))' : 'none',
-        touchAction: 'none',
+        touchAction: isDraggable ? 'none' : 'auto',
         WebkitTouchCallout: 'none',
         WebkitUserSelect: 'none',
         '&:hover': {
@@ -133,25 +174,21 @@ const PunctuationCharacter = ({
           userSelect: 'none',
           WebkitUserDrag: 'none',
           pointerEvents: 'none'
-        }
+        },
+        transform: isDragging ? `translate(${touchPosition.x}px, ${touchPosition.y}px)` : 'none',
       }}
       onClick={onClick}
       draggable={isDraggable}
       onDragStart={handleDragStart}
-      onTouchStart={(e) => {
-        if (isDraggable) {
-          e.currentTarget.style.transform = 'scale(1.1)';
-        }
-      }}
-      onTouchEnd={(e) => {
-        if (isDraggable) {
-          e.currentTarget.style.transform = 'scale(1)';
-        }
-      }}
+      onDragEnd={() => setIsDragging(false)}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={() => setIsDragging(false)}
     >
       <img 
         src={getCharacterImage()} 
         alt={type}
+        draggable={false}
       />
     </Box>
   );
