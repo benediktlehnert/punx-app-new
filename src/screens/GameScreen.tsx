@@ -78,42 +78,23 @@ const GameOverDialog = ({ open, onClose, score }: GameOverDialogProps) => (
 const GameScreen = () => {
   const navigate = useNavigate();
   const { punctuationType, settings } = useGame();
+  const [currentPhraseIndex, setCurrentPhraseIndex] = React.useState(0);
   const [currentPhrase, setCurrentPhrase] = React.useState<Phrase | null>(null);
-  const [isCorrect, setIsCorrect] = React.useState<boolean | null>(null);
-  const [shuffledTypes, setShuffledTypes] = React.useState<PunctuationType[]>(['period', 'exclamation', 'question', 'comma']);
-  const [score, setScore] = React.useState({ correct: 0, incorrect: 0 });
   const [selectedMark, setSelectedMark] = React.useState<PunctuationType | null>(null);
-  const [feedback, setFeedback] = React.useState<FeedbackMessage | null>(null);
+  const [isCorrect, setIsCorrect] = React.useState<boolean | null>(null);
+  const [score, setScore] = React.useState({ correct: 0, incorrect: 0 });
+  const [hasStarted, setHasStarted] = React.useState(false);
   const [timeLeft, setTimeLeft] = React.useState<number | null>(null);
   const [gameOverOpen, setGameOverOpen] = React.useState(false);
-  const [hasStarted, setHasStarted] = React.useState(false);
+  const [shuffledTypes, setShuffledTypes] = React.useState<PunctuationType[]>(['period', 'exclamation', 'question', 'comma']);
+  const [feedback, setFeedback] = React.useState<FeedbackMessage | null>(null);
   const timerRef = React.useRef<NodeJS.Timeout | null>(null);
 
-  const getRandomPhrase = React.useCallback(() => {
-    if (punctuationType === 'shuffle') {
-      // For shuffle mode, get all phrases and pick one randomly
-      const allPhrases = Object.values(samplePhrases).flat();
-      return allPhrases[Math.floor(Math.random() * allPhrases.length)];
-    } else if (punctuationType && samplePhrases[punctuationType]) {
-      // For specific punctuation type
-      const phrases = samplePhrases[punctuationType];
-      return phrases[Math.floor(Math.random() * phrases.length)];
-    }
-    return null;
-  }, [punctuationType]);
-
-  const loadNewPhrase = React.useCallback(() => {
-    const newPhrase = getRandomPhrase();
-    setCurrentPhrase(newPhrase);
-    setShuffledTypes(shuffleArray(punctuationTypes));
-    setIsCorrect(null);
-    setSelectedMark(null);
-    setFeedback(null);
-  }, [getRandomPhrase]);
+  const phrases = React.useMemo(() => shuffleArray(Object.values(samplePhrases).flat()), []);
 
   React.useEffect(() => {
-    loadNewPhrase();
-  }, [loadNewPhrase]);
+    setCurrentPhrase(phrases[currentPhraseIndex]);
+  }, [currentPhraseIndex, phrases]);
 
   const startTimer = React.useCallback(() => {
     if (!hasStarted && settings.timer) {
@@ -195,46 +176,41 @@ const GameScreen = () => {
     }
   };
 
-  const vibrate = (pattern: number | number[]) => {
-    try {
-      if ('vibrate' in navigator && typeof navigator.vibrate === 'function') {
-        navigator.vibrate(pattern);
-      }
-    } catch (error) {
-      console.log('Vibration not supported');
+  const handleCharacterSelect = (type: PunctuationType) => {
+    if (!currentPhrase) return;
+
+    // Start timer on first interaction if not started
+    if (!hasStarted) {
+      startTimer();
     }
+
+    setSelectedMark(type);
+    const isCorrectMark = type === currentPhrase.answer;
+    setIsCorrect(isCorrectMark);
+
+    if (isCorrectMark) {
+      setScore(prev => ({
+        ...prev,
+        correct: prev.correct + 1
+      }));
+    } else {
+      setScore(prev => ({
+        ...prev,
+        incorrect: prev.incorrect + 1
+      }));
+    }
+
+    // Wait for animation then move to next phrase
+    setTimeout(() => {
+      setSelectedMark(null);
+      setIsCorrect(null);
+      goToNextPhrase();
+    }, 1000);
   };
 
-  const handleCharacterSelect = (type: PunctuationType) => {
-    handleFirstInteraction();
-    setSelectedMark(type);
-    vibrate(50);
-
-    if (currentPhrase) {
-      const correct = type === currentPhrase.answer;
-      setIsCorrect(correct);
-      
-      // Update score
-      setScore(prev => ({
-        correct: correct ? prev.correct + 1 : prev.correct,
-        incorrect: correct ? prev.incorrect : prev.incorrect + 1
-      }));
-      
-      if (correct) {
-        vibrate([100, 50, 100]);
-      } else {
-        vibrate([200]);
-      }
-
-      // Load new phrase after a delay
-      setTimeout(() => {
-        const newPhrase = getRandomPhrase();
-        setCurrentPhrase(newPhrase);
-        setShuffledTypes(shuffleArray([...punctuationTypes]));
-        setIsCorrect(null);
-        setSelectedMark(null);
-      }, 1000);
-    }
+  const goToNextPhrase = () => {
+    const nextIndex = (currentPhraseIndex + 1) % phrases.length;
+    setCurrentPhraseIndex(nextIndex);
   };
 
   const handleDrop = (e: React.DragEvent<HTMLElement>) => {
@@ -245,7 +221,6 @@ const GameScreen = () => {
     console.log('Dropped type:', droppedType); // Add this for debugging
     
     if (droppedType) {
-      vibrate(50);
       handleCharacterSelect(droppedType);
     }
   };
@@ -271,24 +246,40 @@ const GameScreen = () => {
     const words = currentPhrase.text.split(' ');
     
     return (
-      <div style={{ 
-        width: '100%',
-        textAlign: 'center'
-      }}>
-        <div style={{
-          fontFamily: 'Bookman Old Style Regular, serif',
-          fontSize: window.innerWidth < 600 ? '80px' : 
-                   window.innerWidth < 960 ? '100px' : 
-                   window.innerWidth < 1280 ? '120px' : '140px',
-          lineHeight: '1.1',
-          display: 'inline-block',
-          textAlign: 'left',
-          maxWidth: '90%',
-          margin: '0 auto'
-        }}>
+      <div 
+        style={{ 
+          width: '100%',
+          textAlign: 'center',
+          willChange: 'transform',
+          transform: 'translateZ(0)',
+          backfaceVisibility: 'hidden'
+        }}
+      >
+        <div 
+          style={{
+            fontFamily: '"Bookman Old Style Regular", "Bookman", "URW Bookman L", serif',
+            fontWeight: 'normal',
+            fontSize: window.innerWidth < 600 ? '80px' : 
+                     window.innerWidth < 960 ? '100px' : 
+                     window.innerWidth < 1280 ? '120px' : '140px',
+            lineHeight: '1.1',
+            display: 'inline-block',
+            textAlign: 'left',
+            maxWidth: '90%',
+            margin: '0 auto',
+            WebkitFontSmoothing: 'antialiased',
+            WebkitTextSizeAdjust: '100%',
+            color: '#000000'
+          }}
+        >
           {words.map((word, index) => (
             <React.Fragment key={index}>
-              {word}
+              <span style={{ 
+                display: 'inline-block',
+                fontFamily: '"Bookman Old Style Regular", "Bookman", "URW Bookman L", serif'
+              }}>
+                {word}
+              </span>
               {(currentPhrase.position === index || 
                 (index === words.length - 1 && currentPhrase.position === 'end')) && (
                 <span
@@ -303,21 +294,23 @@ const GameScreen = () => {
                     verticalAlign: 'top',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                    transform: 'scale(1)'
-                  }}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    e.currentTarget.style.transform = 'scale(1)';
-                    handleDrop(e);
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
                   }}
                   onDragOver={(e) => {
                     e.preventDefault();
-                    e.currentTarget.style.transform = 'scale(1.1)';
+                    e.currentTarget.style.border = '6px dashed #666';
+                    e.currentTarget.style.transform = 'scale(1.05)';
                   }}
                   onDragLeave={(e) => {
                     e.preventDefault();
+                    e.currentTarget.style.border = '6px dashed #ccc';
                     e.currentTarget.style.transform = 'scale(1)';
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.style.border = '6px dashed #ccc';
+                    e.currentTarget.style.transform = 'scale(1)';
+                    handleDrop(e);
                   }}
                 >
                   {selectedMark && (
