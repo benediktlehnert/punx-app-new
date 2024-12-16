@@ -35,11 +35,11 @@ export const theme = createTheme({
       fontWeight: 'normal',
     },
     h4: {
-      fontFamily: '"Bookman Old Style", serif',
+      fontFamily: '"Bookman Old Style Regular", serif',
       fontWeight: 'normal',
     },
     subtitle1: {
-      fontFamily: '"Bookman Old Style", serif',
+      fontFamily: '"Bookman Old Style Italic", serif',
       fontStyle: 'italic',
     },
     button: {
