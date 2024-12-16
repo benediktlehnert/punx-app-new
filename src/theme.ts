@@ -33,10 +33,12 @@ export const theme = createTheme({
     h1: {
       fontFamily: '"Punx Grotesk", Arial, sans-serif',
       fontWeight: 'normal',
+      letterSpacing:'-8px',
     },
     h4: {
-      fontFamily: '"Bookman Old Style", serif',
+      fontFamily: '"Bookman Old Style Regular", serif',
       fontWeight: 'normal',
+      letterSpacing:0,
     },
     subtitle1: {
       fontFamily: '"Bookman Old Style", serif',

@@ -8,7 +8,7 @@ export const Button = ({ children, ...props }: ButtonProps) => (
     sx={{
       fontFamily: '"Rethink Sans", Arial, sans-serif',
       fontWeight: 800,
-      fontSize: '20px',
+      fontSize: '24px',
       padding: '8px 24px',
       borderRadius: '20px',
       backgroundColor: 'common.black',

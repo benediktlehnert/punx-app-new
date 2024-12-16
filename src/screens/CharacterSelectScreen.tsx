@@ -40,7 +40,7 @@ const CharacterSelectScreen = () => {
         Back
       </Button>
 
-      <IconButton
+      <Button 
         onClick={handleSettingsOpen}
         sx={{ 
           position: 'absolute', 
@@ -52,8 +52,8 @@ const CharacterSelectScreen = () => {
           }
         }}
       >
-        <SettingsIcon />
-      </IconButton>
+        Settings
+      </Button>
 
       <Typography variant="h4" sx={{ mb: 4 }}>
         Choose Your Character
