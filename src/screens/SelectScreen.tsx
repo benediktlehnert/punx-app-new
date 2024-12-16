@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { Box, Button, Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { sharedButtonStyle } from '../styles/shared';
+import { Button as CustomButton } from '../components/Button';
 
 const SelectScreen = () => {
   const navigate = useNavigate();
@@ -12,24 +12,41 @@ const SelectScreen = () => {
         height: '100vh',
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 4,
-        p: 2,
-        textAlign: 'center'
+        overflow: 'hidden'
       }}
     >
-      <Typography variant="h2" component="h1">
-        Select Mode
-      </Typography>
-
-      <Button
-        variant="contained"
-        onClick={() => navigate('/game')}
-        sx={sharedButtonStyle}
+      <Box
+        sx={{
+          position: 'sticky',
+          top: 0,
+          padding: 2,
+          backgroundColor: 'white',
+          zIndex: 10,
+          borderBottom: '1px solid rgba(0,0,0,0.1)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}
       >
-        Start Game
-      </Button>
+        <Typography variant="h6">Select Mode</Typography>
+        <CustomButton onClick={() => navigate('/game')}>
+          Start Game
+        </CustomButton>
+      </Box>
+
+      <Box
+        sx={{
+          flex: 1,
+          overflow: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 2
+        }}
+      >
+        {/* Content */}
+      </Box>
     </Box>
   );
 };
