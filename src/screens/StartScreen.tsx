@@ -15,8 +15,8 @@ const StartScreen = () => {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: '0rem',
-        p: 2,
+        gap: '2rem',
+        p: 4,
         textAlign: 'center'
       }}
     >
@@ -26,7 +26,7 @@ const StartScreen = () => {
         style={{
           maxWidth: '100%',
           height: 'auto',
-          marginBottom: '4rem'
+          marginBottom: '3rem'
         }}
       />
       

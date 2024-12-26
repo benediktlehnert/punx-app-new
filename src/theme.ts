@@ -41,7 +41,7 @@ export const theme = createTheme({
       letterSpacing:0,
     },
     subtitle1: {
-      fontFamily: '"Bookman Old Style", serif',
+      fontFamily: '"Bookman Old Style Italic", serif',
       fontStyle: 'italic',
     },
     button: {

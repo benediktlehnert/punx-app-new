@@ -47,6 +47,8 @@ interface PunctuationCharacterProps {
   isDraggable?: boolean;
   onDragStart?: (e: React.DragEvent) => void;
   onSelect?: (type: 'period' | 'exclamation' | 'question' | 'comma') => void;
+  onDrag?: (e: React.DragEvent) => void;
+  onDragEnd?: () => void;
 }
 
 const characterImages = {
@@ -83,7 +85,9 @@ const PunctuationCharacter = ({
   onClick, 
   isDraggable,
   onDragStart,
-  onSelect 
+  onSelect,
+  onDrag,
+  onDragEnd 
 }: PunctuationCharacterProps) => {
   const [isDragging, setIsDragging] = React.useState(false);
   const elementRef = React.useRef<HTMLDivElement>(null);
@@ -122,7 +126,10 @@ const PunctuationCharacter = ({
   const handleDragStart = (e: React.DragEvent<HTMLElement>) => {
     if (isTouch) return;
     setIsDragging(true);
+    
+    console.log('Setting drag data:', type);
     e.dataTransfer.setData('application/punctuation', type);
+    
     if (onDragStart) {
       onDragStart(e);
     }
@@ -270,7 +277,8 @@ const PunctuationCharacter = ({
       onClick={!isDragging ? onClick : undefined}
       draggable={isDraggable && !isTouch}
       onDragStart={handleDragStart}
-      onDragEnd={() => !isTouch && setIsDragging(false)}
+      onDrag={onDrag}
+      onDragEnd={onDragEnd}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
