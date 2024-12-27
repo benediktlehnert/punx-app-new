@@ -1,111 +1,58 @@
-import * as React from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import PunctuationCharacter from '../components/PunctuationCharacter';
+import { 
+  Box, 
+  Typography, 
+  Dialog, 
+  DialogContent, 
+  DialogActions, 
+  Button 
+} from '@mui/material';
+import PunctuationCharacter, { PunctuationType } from '../components/PunctuationCharacter';
 import GameOverDialog from '../components/GameOverDialog';
 import { Button as CustomButton } from '../components/Button';
-import { GameOverDialog } from '../components/GameOverDialog';
-import { useEffect, useState } from 'react';
 import { useSettings } from '../context/SettingsContext';
+import { useGame } from '../context/GameContext';
+import { shuffleArray } from '../utils';
+import { samplePhrases, Phrase } from '../data/phrases';
 
-type Phrase = {
-  text: string;
-  answer: string;
-  position: 'end' | number; // 'end' or index where punctuation should go
-};
+const punctuationMarks: PunctuationType[] = ['period', 'question', 'exclamation', 'comma'];
 
-type PhraseCollection = {
-  period: Phrase[];
-  exclamation: Phrase[];
-  question: Phrase[];
-  comma: Phrase[];
-};
-
-const samplePhrases: PhraseCollection = {
-  period: [
-    { text: "I love to play in the park", answer: "period", position: 'end' },
-    { text: "The sun is shining today", answer: "period", position: 'end' },
-  ],
-  exclamation: [
-    { text: "What a wonderful day", answer: "exclamation", position: 'end' },
-    { text: "I can’t believe it", answer: "exclamation", position: 'end' },
-  ],
-  question: [
-    { text: "How are you today", answer: "question", position: 'end' },
-    { text: "Where did you go", answer: "question", position: 'end' },
-  ],
-  comma: [
-    { text: "After the movie we went home", answer: "comma", position: 2 }, // After index 2 (after "movie")
-    { text: "Yes I would love to", answer: "comma", position: 0 }, // After index 1 (after "Yes")
-  ],
-};
-
-type PunctuationType = 'period' | 'exclamation' | 'question' | 'comma';
-
-const punctuationTypes: PunctuationType[] = ['period', 'exclamation', 'question', 'comma'];
-
-interface FeedbackMessage {
-  text: string;
+type FeedbackMessage = {
   type: 'success' | 'error';
-}
-
-interface GameOverDialogProps {
-  open: boolean;
-  onClose: () => void;
-  score: { correct: number; incorrect: number };
-}
-
-const GameOverDialog = ({ open, onClose, score }: GameOverDialogProps) => (
-  <Dialog open={open} onClose={onClose}>
-    <DialogContent>
-      <Typography variant="h4" sx={{ mb: 2 }}>Time's Up!</Typography>
-      <Typography variant="h6" sx={{ color: 'success.main', mb: 1 }}>
-        Correct Answers: {score.correct}
-      </Typography>
-      <Typography variant="h6" sx={{ color: 'error.main', mb: 2 }}>
-        Incorrect Answers: {score.incorrect}
-      </Typography>
-      <Typography variant="body1">
-        {score.correct > score.incorrect 
-          ? "Great job! You're getting really good at this!" 
-          : "Keep practicing, you're getting better!"}
-      </Typography>
-    </DialogContent>
-    <DialogActions>
-      <Button onClick={onClose}>Play Again</Button>
-    </DialogActions>
-  </Dialog>
-);
+  message: string;
+};
 
 const GameScreen = () => {
   const navigate = useNavigate();
   const { punctuationType, settings } = useGame();
-  const [currentPhraseIndex, setCurrentPhraseIndex] = React.useState(0);
-  const [currentPhrase, setCurrentPhrase] = React.useState<Phrase | null>(null);
-  const [selectedMark, setSelectedMark] = React.useState<PunctuationType | null>(null);
-  const [isCorrect, setIsCorrect] = React.useState<boolean | null>(null);
-  const [score, setScore] = React.useState({ correct: 0, incorrect: 0 });
-  const [hasStarted, setHasStarted] = React.useState(false);
-  const [timeLeft, setTimeLeft] = React.useState<number>(() => settings.timeLimit);
-  const [isTimerRunning, setIsTimerRunning] = React.useState(false);
-  const [gameOverOpen, setGameOverOpen] = React.useState(false);
-  const [shuffledTypes, setShuffledTypes] = React.useState<PunctuationType[]>(['period', 'exclamation', 'question', 'comma']);
-  const [feedback, setFeedback] = React.useState<FeedbackMessage | null>(null);
-  const timerRef = React.useRef<NodeJS.Timeout | null>(null);
+  const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
+  const [currentPhrase, setCurrentPhrase] = useState<Phrase | null>(null);
+  const [selectedMark, setSelectedMark] = useState<PunctuationType | null>(null);
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [score, setScore] = useState({ correct: 0, incorrect: 0 });
+  const [hasStarted, setHasStarted] = useState(false);
+  const [timeLeft, setTimeLeft] = useState<number>(() => settings.timeLimit);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [gameOverOpen, setGameOverOpen] = useState(false);
+  const [shuffledTypes, setShuffledTypes] = useState<PunctuationType[]>(['period', 'exclamation', 'question', 'comma']);
+  const [feedback, setFeedback] = useState<FeedbackMessage | null>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const phrases = React.useMemo(() => shuffleArray(Object.values(samplePhrases).flat()), []);
+  const phrases = useMemo(() => shuffleArray(Object.values(samplePhrases).flat()), []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setCurrentPhrase(phrases[currentPhraseIndex]);
   }, [currentPhraseIndex, phrases]);
 
-  const startTimer = React.useCallback(() => {
+  const startTimer = useCallback(() => {
     if (!hasStarted && settings.timer) {
       setHasStarted(true);
       setTimeLeft(settings.timeLimit);
     }
   }, [hasStarted, settings.timer, settings.timeLimit]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (hasStarted && settings.timer && timeLeft !== null && timeLeft > 0) {
       timerRef.current = setInterval(() => {
         setTimeLeft((prev) => {
@@ -128,7 +75,7 @@ const GameScreen = () => {
     }
   }, [hasStarted, settings.timer, timeLeft]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       if (timerRef.current) {
         clearInterval(timerRef.current);
@@ -143,8 +90,8 @@ const GameScreen = () => {
   const getFeedbackMessage = (type: string, isCorrect: boolean): FeedbackMessage => {
     if (isCorrect) {
       return {
-        text: "Great job! That's exactly right!",
-        type: 'success'
+        type: 'success',
+        message: "Great job! That's exactly right!"
       };
     }
 
@@ -152,28 +99,28 @@ const GameScreen = () => {
     switch (correctType) {
       case 'period':
         return {
-          text: "This sentence needs a period to show it's complete.",
-          type: 'error'
+          type: 'error',
+          message: "This sentence needs a period to show it's complete."
         };
       case 'question':
         return {
-          text: "This is a question, so it needs a question mark.",
-          type: 'error'
+          type: 'error',
+          message: "This is a question, so it needs a question mark."
         };
       case 'exclamation':
         return {
-          text: "This sentence shows strong feeling or emotion, so it needs an exclamation mark!",
-          type: 'error'
+          type: 'error',
+          message: "This sentence shows strong feeling or emotion, so it needs an exclamation mark!"
         };
       case 'comma':
         return {
-          text: "A comma is needed here to separate parts of the sentence.",
-          type: 'error'
+          type: 'error',
+          message: "A comma is needed here to separate parts of the sentence."
         };
       default:
         return {
-          text: "That's not quite right. Try again!",
-          type: 'error'
+          type: 'error',
+          message: "That's not quite right. Try again!"
         };
     }
   };
@@ -248,32 +195,19 @@ const GameScreen = () => {
     const words = currentPhrase.text.split(' ');
     
     return (
-      <div 
-        style={{ 
-          width: '100%',
-          textAlign: 'center',
-          willChange: 'transform',
-          transform: 'translateZ(0)',
-          backfaceVisibility: 'hidden'
-        }}
-      >
-        <div 
-          style={{
-            fontFamily: '"Bookman Old Style Regular", "Bookman", "URW Bookman L", serif',
-            fontWeight: 'normal',
-            fontSize: window.innerWidth < 600 ? '80px' : 
-                     window.innerWidth < 960 ? '100px' : 
-                     window.innerWidth < 1280 ? '120px' : '140px',
-            lineHeight: '1.1',
-            display: 'inline-block',
-            textAlign: 'left',
-            maxWidth: '90%',
-            margin: '0 auto',
-            WebkitFontSmoothing: 'antialiased',
-            WebkitTextSizeAdjust: '100%',
-            color: '#000000'
-          }}
-        >
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100%',
+        padding: '20px'
+      }}>
+        <div style={{ 
+          fontSize: '24px',
+          lineHeight: '1.5',
+          textAlign: 'center'
+        }}>
           {words.map((word, index) => (
             <React.Fragment key={index}>
               <span style={{ 
@@ -282,46 +216,25 @@ const GameScreen = () => {
               }}>
                 {word}
               </span>
-              {(currentPhrase.position === index || 
+              {(currentPhrase.position === 'middle' && index === Math.floor(words.length / 2) || 
                 (index === words.length - 1 && currentPhrase.position === 'end')) && (
                 <span
                   data-dropzone="true"
                   style={{
-                    display: 'inline-flex',
-                    width: '140px',
-                    height: '140px',
-                    border: '6px dashed #ccc',
-                    borderRadius: '20px',
-                    margin: '0 16px',
-                    verticalAlign: 'top',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                  }}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    e.currentTarget.style.border = '6px dashed #666';
-                    e.currentTarget.style.transform = 'scale(1.05)';
-                  }}
-                  onDragLeave={(e) => {
-                    e.preventDefault();
-                    e.currentTarget.style.border = '6px dashed #ccc';
-                    e.currentTarget.style.transform = 'scale(1)';
-                  }}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    e.currentTarget.style.border = '6px dashed #ccc';
-                    e.currentTarget.style.transform = 'scale(1)';
-                    handleDrop(e);
+                    display: 'inline-block',
+                    width: '24px',
+                    height: '24px',
+                    margin: '0 4px',
+                    borderRadius: '4px',
+                    backgroundColor: selectedMark ? 'transparent' : '#f0f0f0',
+                    border: '2px dashed #ccc'
                   }}
                 >
                   {selectedMark && (
                     <PunctuationCharacter
-                      type={selectedMark}
+                      mark={selectedMark}
                       onClick={() => {}}
-                      isCorrect={isCorrect}
-                      isDraggable={false}
-                      onSelect={() => {}}
+                      disabled={false}
                     />
                   )}
                 </span>
@@ -336,7 +249,16 @@ const GameScreen = () => {
 
   const handleGameOverClose = () => {
     setGameOverOpen(false);
-    navigate('/select');
+    navigate('/');
+  };
+
+  const handleRestart = () => {
+    setGameOverOpen(false);
+    setScore({ correct: 0, incorrect: 0 });
+    setCurrentPhraseIndex(0);
+    setTimeLeft(settings.timeLimit);
+    setHasStarted(false);
+    setIsTimerRunning(false);
   };
 
   const formatTime = (seconds: number | null): string => {
@@ -375,7 +297,7 @@ const GameScreen = () => {
     </Box>
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (settings.timer) {
       setTimeLeft(settings.timeLimit);
     }
@@ -401,12 +323,39 @@ const GameScreen = () => {
     </Box>
   );
 
+  const handleMarkClick = (mark: PunctuationType) => {
+    if (!currentPhrase) return;
+    
+    setSelectedMark(mark);
+    const isAnswerCorrect = mark === currentPhrase.answer;
+    setIsCorrect(isAnswerCorrect);
+    
+    setScore(prev => ({
+      correct: prev.correct + (isAnswerCorrect ? 1 : 0),
+      incorrect: prev.incorrect + (isAnswerCorrect ? 0 : 1)
+    }));
+
+    setFeedback({
+      type: isAnswerCorrect ? 'success' : 'error',
+      message: isAnswerCorrect ? 'Correct!' : 'Try again!'
+    });
+
+    // Move to next phrase after a short delay
+    setTimeout(() => {
+      setCurrentPhraseIndex(prev => 
+        prev < phrases.length - 1 ? prev + 1 : 0
+      );
+      setSelectedMark(null);
+      setIsCorrect(null);
+      setFeedback(null);
+    }, 1000);
+  };
+
   return (
     <Box sx={{ 
       height: '100vh',
       display: 'flex',
       flexDirection: 'column',
-      position: 'relative'
     }}>
       <TopBar />
       
@@ -414,16 +363,13 @@ const GameScreen = () => {
         flex: 1,
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'center',
-        padding: '24px',
-        paddingBottom: '120px',
         paddingTop: '12px',
       }}>
         <Box sx={{ 
           flex: 1,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center'
+          justifyContent: 'center',
         }}>
           {renderPhrase()}
         </Box>
@@ -434,32 +380,27 @@ const GameScreen = () => {
         bottom: 0,
         left: 0,
         right: 0,
+        padding: 2,
         display: 'flex',
         justifyContent: 'center',
-        alignItems: 'center',
-        gap: '32px',
-        padding: '24px',
-        minHeight: '120px',
-        backgroundColor: 'transparent',
-        zIndex: 2
+        gap: 2,
+        backgroundColor: 'background.paper',
       }}>
-        {shuffledTypes.map((type) => (
+        {punctuationMarks.map((mark) => (
           <PunctuationCharacter
-            key={type}
-            type={type}
-            onClick={() => handleCharacterSelect(type)}
-            isCorrect={undefined}
-            isDraggable={true}
-            onDragStart={() => setSelectedMark(null)}
-            onSelect={handleCharacterSelect}
+            key={mark}
+            mark={mark}
+            onClick={() => handleMarkClick(mark)}
+            disabled={!currentPhrase}
           />
         ))}
-      </div>
+      </Box>
 
       {settings.timer && <TimerDisplay />}
       <GameOverDialog 
         open={gameOverOpen} 
         onClose={handleGameOverClose}
+        onRestart={handleRestart}
         score={score}
       />
     </Box>
