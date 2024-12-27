@@ -85,6 +85,7 @@ const GameScreen = () => {
   const [shuffledTypes, setShuffledTypes] = React.useState<PunctuationType[]>(['period', 'exclamation', 'question', 'comma']);
   const [feedback, setFeedback] = React.useState<FeedbackMessage | null>(null);
   const timerRef = React.useRef<NodeJS.Timeout | null>(null);
+  const [dragPosition, setDragPosition] = useState<{ x: number; y: number } | null>(null);
 
   const phrases = React.useMemo(() => shuffleArray(Object.values(samplePhrases).flat()), []);
 
@@ -249,6 +250,16 @@ const GameScreen = () => {
           willChange: 'transform',
           transform: 'translateZ(0)',
           backfaceVisibility: 'hidden'
+        }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragPosition({ x: e.clientX, y: e.clientY });
+        }}
+        onDragLeave={() => {
+          setDragPosition(null);
+        }}
+        onDrop={() => {
+          setDragPosition(null);
         }}
       >
         <div 
