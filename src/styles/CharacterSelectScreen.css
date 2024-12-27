@@ -22,11 +22,12 @@
 
 .select-title {
   font-family: 'Punx Grotesk', Arial, sans-serif;
-  font-weight: 800;
-  font-size: 5rem;
-  letter-spacing: -4px;
+  font-size: 7rem;
+  letter-spacing: -6px;
+  word-spacing: 9px;
+  line-height: 0.8;
   text-align: center;
-  margin: 48px 0 24px;
+  margin: 48px 0;
 }
 
 .character-grid {
