@@ -1,10 +1,10 @@
-import * as React from 'react';
-import { Box, Typography, Button, Grid, Dialog, DialogContent, DialogActions } from '@mui/material';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
 import PunctuationCharacter from '../components/PunctuationCharacter';
 import { shuffleArray } from '../utils/shuffle';
-import { Button as CustomButton } from '../components/Button';
+import { Button } from '../components/Button';
+import '../styles/GameScreen.css';
 
 type Phrase = {
   text: string;
@@ -54,25 +54,21 @@ interface GameOverDialogProps {
 }
 
 const GameOverDialog = ({ open, onClose, score }: GameOverDialogProps) => (
-  <Dialog open={open} onClose={onClose}>
-    <DialogContent>
-      <Typography variant="h4" sx={{ mb: 2 }}>Time's Up!</Typography>
-      <Typography variant="h6" sx={{ color: 'success.main', mb: 1 }}>
-        Correct Answers: {score.correct}
-      </Typography>
-      <Typography variant="h6" sx={{ color: 'error.main', mb: 2 }}>
-        Incorrect Answers: {score.incorrect}
-      </Typography>
-      <Typography variant="body1">
+  <dialog open={open} className="game-over-dialog">
+    <div className="dialog-content">
+      <h2>Time's Up!</h2>
+      <p className="score-correct">Correct Answers: {score.correct}</p>
+      <p className="score-incorrect">Incorrect Answers: {score.incorrect}</p>
+      <p className="feedback">
         {score.correct > score.incorrect 
           ? "Great job! You're getting really good at this!" 
           : "Keep practicing, you're getting better!"}
-      </Typography>
-    </DialogContent>
-    <DialogActions>
-      <Button onClick={onClose}>Play Again</Button>
-    </DialogActions>
-  </Dialog>
+      </p>
+      <div className="dialog-actions">
+        <Button onClick={onClose}>Play Again</Button>
+      </div>
+    </div>
+  </dialog>
 );
 
 const GameScreen = () => {
@@ -345,32 +341,12 @@ const GameScreen = () => {
   };
 
   const TimerDisplay = () => (
-    <Box sx={{ 
-      position: 'absolute',
-      top: 16,
-      right: 16,
-      backgroundColor: (!hasStarted || timeLeft === null) ? 'primary.main' :
-                      timeLeft < 10 ? 'error.main' : 'primary.main',
-      color: 'white',
-      borderRadius: '50%',
-      width: 80,
-      height: 80,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      transition: 'background-color 0.3s ease',
-      boxShadow: 2
-    }}>
-      <Typography 
-        variant="h6" 
-        sx={{ 
-          fontFamily: 'monospace',
-          fontWeight: 'bold'
-        }}
-      >
+    <div className={`timer ${(!hasStarted || timeLeft === null) ? '' : 
+      timeLeft < 10 ? 'timer-warning' : ''}`}>
+      <span className="timer-text">
         {formatTime(timeLeft)}
-      </Typography>
-    </Box>
+      </span>
+    </div>
   );
 
   React.useEffect(() => {
@@ -380,67 +356,27 @@ const GameScreen = () => {
   }, [settings.timer, settings.timeLimit]);
 
   const TopBar = () => (
-    <Box sx={{ 
-      display: 'flex', 
-      justifyContent: 'space-between', 
-      alignItems: 'center',
-      padding: '16px',
-      width: '100%'
-    }}>
-      <CustomButton onClick={() => navigate('/select')}>
+    <header className="top-bar">
+      <Button onClick={() => navigate('/select')}>
         DONE
-      </CustomButton>
-      <Typography sx={{ 
-        fontFamily: '"Rethink Sans", Arial, sans-serif',
-        fontWeight: 800
-      }}>
+      </Button>
+      <p className="score-display">
         CORRECT: {score.correct} INCORRECT: {score.incorrect}
-      </Typography>
-    </Box>
+      </p>
+    </header>
   );
 
   return (
-    <Box sx={{ 
-      height: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      position: 'relative'
-    }}>
+    <div className="game-screen">
       <TopBar />
       
-      <Box sx={{ 
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        padding: '24px',
-        paddingBottom: '120px',
-        paddingTop: '12px',
-      }}>
-        <Box sx={{ 
-          flex: 1,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
+      <main className="game-content">
+        <div className="phrase-container">
           {renderPhrase()}
-        </Box>
-      </Box>
+        </div>
+      </main>
 
-      <Box sx={{ 
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        gap: '32px',
-        padding: '24px',
-        minHeight: '120px',
-        backgroundColor: 'transparent',
-        zIndex: 2
-      }}>
+      <footer className="character-controls">
         {shuffledTypes.map((type) => (
           <PunctuationCharacter
             key={type}
@@ -452,15 +388,16 @@ const GameScreen = () => {
             onSelect={handleCharacterSelect}
           />
         ))}
-      </Box>
+      </footer>
 
       {settings.timer && <TimerDisplay />}
+      
       <GameOverDialog 
         open={gameOverOpen} 
         onClose={handleGameOverClose}
         score={score}
       />
-    </Box>
+    </div>
   );
 };
 

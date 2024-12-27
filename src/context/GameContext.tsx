@@ -1,53 +1,47 @@
 import React, { createContext, useContext, useState } from 'react';
 
-type GameMode = 'free' | 'timed';
-type PunctuationType = 'period' | 'exclamation' | 'question' | 'comma' | 'shuffle';
-type Difficulty = 'smart' | 'smarter';
+export interface Settings {
+  sound: boolean;
+  difficulty: number;
+  timer: boolean;
+  timeLimit: number;
+  showDropZone: boolean;
+}
 
 interface GameContextType {
-  mode: GameMode;
-  setMode: (mode: GameMode) => void;
-  punctuationType: PunctuationType;
-  setPunctuationType: (type: PunctuationType) => void;
-  language: string;
-  setLanguage: (lang: string) => void;
-  difficulty: Difficulty;
-  setDifficulty: (diff: Difficulty) => void;
-  settings: {
-    sound: boolean;
-    difficulty: number;
-    timer: boolean;
-    timeLimit: number;
-  };
-  setSettings: (settings: any) => void;
+  punctuationType: string;
+  setPunctuationType: (type: string) => void;
+  settings: Settings;
+  updateSettings: (newSettings: Partial<Settings>) => void;
 }
+
+const defaultSettings: Settings = {
+  sound: true,
+  difficulty: 1,
+  timer: true,
+  timeLimit: 60,
+  showDropZone: true
+};
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [mode, setMode] = useState<GameMode>('free');
-  const [punctuationType, setPunctuationType] = useState<PunctuationType>('period');
-  const [language, setLanguage] = useState('en');
-  const [difficulty, setDifficulty] = useState<Difficulty>('smart');
-  const [settings, setSettings] = useState({
-    sound: true,
-    difficulty: 1,
-    timer: false,
-    timeLimit: 60
-  });
+  const [punctuationType, setPunctuationType] = useState('');
+  const [settings, setSettings] = useState<Settings>(defaultSettings);
+
+  const updateSettings = (newSettings: Partial<Settings>) => {
+    setSettings(prev => ({
+      ...prev,
+      ...newSettings
+    }));
+  };
 
   return (
     <GameContext.Provider value={{
-      mode,
-      setMode,
       punctuationType,
       setPunctuationType,
-      language,
-      setLanguage,
-      difficulty,
-      setDifficulty,
       settings,
-      setSettings
+      updateSettings
     }}>
       {children}
     </GameContext.Provider>
@@ -56,7 +50,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 export const useGame = () => {
   const context = useContext(GameContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useGame must be used within a GameProvider');
   }
   return context;

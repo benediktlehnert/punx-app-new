@@ -1,0 +1,95 @@
+.settings-modal {
+  border: none;
+  border-radius: 24px;
+  padding: 24px;
+  max-width: 400px;
+  width: 90%;
+  background: white;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  margin: auto;
+}
+
+.settings-modal::backdrop {
+  background: rgba(0,0,0,0.5);
+}
+
+.settings-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.settings-title {
+  font-family: 'Rethink Sans', Arial, sans-serif;
+  font-weight: 800;
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.settings-options {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.settings-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.option-label {
+  font-size: 1rem;
+  color: #000;
+}
+
+.time-limit-option {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.select-dropdown {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  background-color: white;
+  cursor: pointer;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 48px;
+  height: 24px;
+  appearance: none;
+  background-color: #ccc;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.toggle-switch:checked {
+  background-color: #1976d2;
+}
+
+.toggle-switch::before {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  background-color: white;
+  transition: transform 0.3s;
+}
+
+.toggle-switch:checked::before {
+  transform: translateX(24px);
+}
+
+.settings-actions {
+  margin-top: 8px;
+} 
