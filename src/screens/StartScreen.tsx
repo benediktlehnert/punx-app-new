@@ -1,39 +1,24 @@
-import * as React from 'react';
-import { Box, Typography } from '@mui/material';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button as CustomButton } from '../components/Button';
+import { Button } from '../components/Button';
 import startImage from '../assets/images/punx-start.png';
+import '../styles/StartScreen.css';
 
 const StartScreen = () => {
   const navigate = useNavigate();
 
   return (
-    <Box
-      sx={{
-        height: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '2rem',
-        p: 4,
-        textAlign: 'center'
-      }}
-    >
-      <img 
-        src={startImage} 
-        alt="Punctuation Game"
-        style={{
-          maxWidth: '100%',
-          height: 'auto',
-          marginBottom: '3rem'
-        }}
-      />
-      
-      <CustomButton onClick={() => navigate('/select')}>
-        Start Game
-      </CustomButton>
-    </Box>
+    <div className="start-screen">
+      <img src={startImage} alt="Punx" className="start-image" />
+      <main className="start-content">
+        <Button 
+          onClick={() => navigate('/select')}
+          fullWidth
+        >
+          Start Game
+        </Button>
+      </main>
+    </div>
   );
 };
 

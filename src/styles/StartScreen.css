@@ -1,0 +1,53 @@
+.start-screen {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #ffffff;
+}
+
+.start-content {
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  padding: 24px;
+}
+
+.start-image {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  margin-bottom: 24px;
+}
+
+.game-title {
+  font-family: 'Rethink Sans', Arial, sans-serif;
+  font-weight: 800;
+  font-size: 4rem;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.game-subtitle {
+  font-family: 'Rethink Sans', Arial, sans-serif;
+  font-weight: 800;
+  font-size: 1rem;
+  color: #666;
+  margin: 8px 0 48px;
+}
+
+@media (max-width: 480px) {
+  .game-title {
+    font-size: 3rem;
+  }
+
+  .game-subtitle {
+    font-size: 0.875rem;
+    margin: 8px 0 32px;
+  }
+
+  .start-image {
+    max-width: 240px;
+  }
+} 
