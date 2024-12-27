@@ -2,7 +2,7 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #ffffff;
+  background-color: #FFFEFA;
 }
 
 .select-header {
@@ -52,7 +52,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #f5f5f5;
+  background: #FFFEFA;
   border: none;
   border-radius: 24px;
   padding: 32px;
@@ -64,8 +64,9 @@
 }
 
 .character-button:hover {
-  background: #e0e0e0;
+  background: #FFFEFA;
   transform: translateY(-2px);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.10);
 }
 
 .character-button:active {
@@ -128,7 +129,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: #f5f5f5;
+    background: #FFFEFA;
     border: none;
     border-radius: 24px;
     padding: 32px;
@@ -140,8 +141,8 @@
 }
 
 .shuffle-button:hover {
-    background: #e0e0e0;
     transform: translateY(-2px);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.10);
 }
 
 .shuffle-button:active {
